@@ -1,5 +1,6 @@
 // Usage: set ADMIN_EMAIL / ADMIN_PASSWORD in .env, then: npm run create-admin
 require('dotenv').config();
+require('./dnsFix');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 (async () => {

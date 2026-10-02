@@ -2,6 +2,7 @@
 // Usage: npm run seed-demo      (safe to run again: old demo items are replaced)
 //        npm run remove-demo    (deletes everything this script added; your own items stay)
 require('dotenv').config();
+require('./dnsFix');
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Product = require('../models/Product');

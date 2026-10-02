@@ -7,7 +7,8 @@ const { ensureDefaultPages } = require('./utils/defaultPages');
 
 const app = express();
 app.set('trust proxy', 1);
-const origins = (process.env.CLIENT_URL || '').split(',').map((s) => s.trim()).filter(Boolean);
+const origins = (process.env.CLIENT_URL || '').split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
+if (origins.length) console.log('CORS allowed origins:', origins.join(', '));
 app.use(cors({ origin: origins.length ? origins : true }));
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '7d' }));
