@@ -1,4 +1,5 @@
-// Adds demo sections (categories), 7 products in each, and home banners — all with illustrated placeholder images.
+// Adds demo sections (categories), 7 products in each, and home banners, using free Unsplash photos.
+// Demo photos are not your real products. Replace them and run remove-demo before going live.
 // Usage: npm run seed-demo      (safe to run again: old demo items are replaced)
 //        npm run remove-demo    (deletes everything this script added; your own items stay)
 require('dotenv').config();
@@ -7,7 +8,7 @@ const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const Banner = require('../models/Banner');
-const { productImage, categoryImage, bannerImage } = require('./demoArt');
+const { productPhoto, categoryPhoto, bannerPhotos } = require('./demoPhotos');
 const { slugify } = require('../utils/helpers');
 
 const PAL = [
@@ -109,10 +110,9 @@ async function seed() {
   let count = 0;
   for (const [ci, [name, tagline, type, sizes, details, products, palette = PAL]] of SECTIONS.entries()) {
     const n = palette.length;
-    const icon = palette[(ci * 5) % n];
     let cat = await Category.findOne({ slug: slugify(name) });
-    if (!cat) cat = await Category.create({ name, tagline, image: categoryImage(type, icon[1], icon[2]), order: ci, isDemo: true });
-    else if (!cat.image) { cat.image = categoryImage(type, icon[1], icon[2]); await cat.save(); }
+    if (!cat) cat = await Category.create({ name, tagline, image: categoryPhoto(type, ci), order: ci, isDemo: true });
+    else if (!cat.image) { cat.image = categoryPhoto(type, ci); await cat.save(); }
 
     const docs = products.map(([pname, fabric, price, mrp], pi) => {
       const a = palette[(ci * 5 + pi * 3) % n];
@@ -125,7 +125,7 @@ async function seed() {
         details: [fabric, ...details],
         description: 'Demo product. Replace this text, the images and the price from the admin panel.',
         colors: colors.map(([cn, hex]) => ({ name: cn, hex })),
-        images: colors.map(([, hex, accent]) => productImage(type, hex, accent)),
+        images: colors.map((_, k) => productPhoto(type, ci * 3 + pi * 2 + k)),
       };
     });
     for (const d of docs) await Product.create(d); // one by one so each gets a unique slug
@@ -133,11 +133,11 @@ async function seed() {
   }
   await Banner.create({
     eyebrow: 'New collection', title: 'Elegant ethnic wear', subtitle: 'For every occasion', link: '/shop', order: 0, isDemo: true,
-    image: bannerImage([['saree', '#F6DCE5', '#D4A437'], ['lehenga', '#FFFFFF', '#D4A437'], ['kurti', '#FBEFF3', '#C2185B']]),
+    image: bannerPhotos[0],
   });
   await Banner.create({
     eyebrow: 'Festive edit', title: 'Shararas, gowns and suits', subtitle: 'Ready to wear, ready to celebrate', link: '/shop/sharara-sets', order: 1, isDemo: true,
-    image: bannerImage([['sharara', '#FFFFFF', '#D4A437'], ['gown', '#F6DCE5', '#D4A437'], ['suit', '#FBEFF3', '#C2185B']]),
+    image: bannerPhotos[1],
   });
   console.log(`Added ${count} demo products in ${SECTIONS.length} sections and 2 banners`);
 }

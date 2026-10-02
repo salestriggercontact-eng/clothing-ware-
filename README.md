@@ -23,7 +23,7 @@ Log in with the admin email -> you land on /admin.
 ## Demo products (optional)
 ```
 cd backend
-npm run seed-demo     # 17 sections x 7 products = 119 products, 2 banners, illustrated placeholder images
+npm run seed-demo     # 17 sections x 7 products = 119 products, 2 banners, free Unsplash photos
 npm run remove-demo   # deletes only the demo items (your own products stay)
 ```
 Demo products show a "Demo" tag in admin. Remove them before going live.
