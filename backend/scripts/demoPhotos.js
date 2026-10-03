@@ -1,6 +1,6 @@
 // Free photos from Unsplash (Unsplash License: free for commercial use, no attribution required).
-// Used ONLY for demo products. They are not photos of your actual stock — replace before going live.
-const u = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&crop=faces&w=${w}&h=${h}&q=75`;
+// Branded items (visible logos) were skipped on purpose. Used ONLY for demo products: replace before going live.
+const u = (id, w, h, crop = 'faces') => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&crop=${crop}&w=${w}&h=${h}&q=75`;
 
 const POOLS = {
   saree: ['1610189013429-a703f4b245cf', '1610189012906-4c0aa9b9781e', '1679006831648-7c9ea12e5807', '1617627143750-d86bc21e42bb',
@@ -16,16 +16,32 @@ const POOLS = {
     '1571908599407-cdb918ed83bf', '1479812627010-aa5bd9d173b1', '1632745994322-ac4f4bb36792'],
   casual: ['1599428021675-90f8f8dbc377', '1614788650841-e99d5f181137', '1628620835051-8f40f48c928d', '1542295669297-4d352b042bca',
     '1657815929003-b97cc426cb3d', '1617019114583-affb34d1b3cd'],
+  necklace: ['1705326454924-f6777522b030', '1705326453292-f3d35cd96514', '1705326452390-3ecf6070595f'],
+  earring: ['1705326454941-b5b1f817ea82', '1705326453282-e4e1b78f5fea', '1705326454933-9685fc6888e1', '1705326453273-1c35d7dad309'],
+  jewel: ['1705326452395-1d35e6add570', '1705326455036-0fab8ecba04d', '1705326454933-9685fc6888e1', '1705326454924-f6777522b030',
+    '1705326453273-1c35d7dad309', '1705326452390-3ecf6070595f'],
+  heels: ['1535043934128-cf0b28d52f95', '1543163521-1bf539c55dd2', '1573100925118-870b8efc799d', '1596703263926-eb0762ee17e4',
+    '1581101767113-1677fc2beaa8', '1551489186-ccb95a1ea6a3', '1632793039681-2cf5f97be82c', '1524553879936-2ff074ae5816'],
+  sandals: ['1590099033615-be195f8d575c', '1553545985-1e0d8781d5db', '1611233299310-f6276ff55307', '1543163521-1bf539c55dd2',
+    '1581101767113-1677fc2beaa8'],
+  sneakers: ['1608231387042-66d1773070a5', '1525966222134-fcfa99b8ae77', '1595950653106-6c9ebd614d3a', '1539185441755-769473a23570',
+    '1595341888016-a392ef81b7de'],
+  boots: ['1610398752800-146f269dfcc8', '1605733513549-de9b150bd70d', '1596703263926-eb0762ee17e4'],
+  bags: ['1584917865442-de89df76afd3', '1590874103328-eac38a683ce7', '1605733513597-a8f8341084e6', '1544816155-12df9643f363',
+    '1622560480654-d96214fdc887', '1680039211156-66c721b87625', '1682745230951-8a5aa9a474a0', '1705909237050-7a7625b47fac',
+    '1681747685985-a401c271156c', '1591561954557-26941169b49e', '1559563458-527698bf5295', '1622560480605-d83c853bc5c3',
+    '1613482184972-f9c1022d0928', '1632282003890-020318a49e62'],
 };
 
-// which photo pool each art type uses
-const POOL_OF = {
-  saree: 'saree', kurti: 'ethnic', suit: 'ethnic', sharara: 'ethnic', dupatta: 'ethnic', blouse: 'ethnic',
-  lehenga: 'bridal', gown: 'western', dress: 'western', coord: 'western', jumpsuit: 'western', skirt: 'western', nighty: 'western',
-  top: 'casual', bottoms: 'casual', jeans: 'casual', shrug: 'casual',
-};
+// products (people) crop on faces; objects (shoes, bags, jewellery) crop on the centre
+const OBJECT_POOLS = new Set(['necklace', 'earring', 'jewel', 'heels', 'sandals', 'sneakers', 'boots', 'bags']);
+const cropOf = (pool) => (OBJECT_POOLS.has(pool) ? 'entropy' : 'faces');
 
-const pool = (type) => POOLS[POOL_OF[type] || 'western'];
-exports.productPhoto = (type, n) => { const p = pool(type); return u(p[n % p.length], 800, 1067); };
-exports.categoryPhoto = (type, n) => { const p = pool(type); return u(p[n % p.length], 300, 300); };
-exports.bannerPhotos = [u('1617627143750-d86bc21e42bb', 1600, 700), u('1610047614256-023d7c028d0b', 1600, 700)];
+exports.POOLS = POOLS;
+exports.productPhoto = (pool, n) => { const p = POOLS[pool]; return u(p[n % p.length], 800, 1067, cropOf(pool)); };
+exports.categoryPhoto = (pool, n) => { const p = POOLS[pool]; return u(p[n % p.length], 300, 300, cropOf(pool)); };
+exports.bannerPhotos = [
+  u('1617627143750-d86bc21e42bb', 1600, 700),
+  u('1610047614256-023d7c028d0b', 1600, 700),
+  u('1584917865442-de89df76afd3', 1600, 700, 'entropy'),
+];
