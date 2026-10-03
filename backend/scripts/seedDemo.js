@@ -1,7 +1,7 @@
 // Adds 35 demo sections x 40 products (1400 unique products) and 3 home banners.
 // Every product gets its own photo (no photo is used twice). Needs UNSPLASH_ACCESS_KEY or PEXELS_API_KEY in .env.
-// Demo photos are not your real products. Replace them and run remove-demo before going live.
-// Usage: npm run seed-demo      (safe to run again: old demo items are replaced)
+// Sections are updated as soon as their photos are ready, so a rate limit never leaves you with nothing.
+// Usage: npm run seed-demo      (safe to run again)
 //        npm run remove-demo    (deletes everything this script added; your own items stay)
 require('dotenv').config();
 require('./dnsFix');
@@ -25,19 +25,23 @@ async function remove() {
 
 async function seed() {
   const catalog = buildCatalog(); // throws if any section has fewer than 40 unique products
-  console.log('Getting photos (first run calls Pexels, later runs use the cache)...');
+  console.log('Getting photos (saved photos are reused, new ones are fetched)...');
   const photos = await getPhotos(catalog.map((s) => s.name), 40);
-  await remove();
 
-  // skip names that already exist as your own (non-demo) products, so nothing is duplicated
   const existing = new Set((await Product.find({ isDemo: { $ne: true } }).select('name')).map((p) => p.name.toLowerCase()));
-  let count = 0, skipped = 0;
+  let updated = 0, products = 0, skipped = 0;
 
   for (const [ci, sec] of catalog.entries()) {
-    let cat = await Category.findOne({ slug: slugify(sec.name) });
     const secPhotos = photos.sections[sec.name];
+    if (!secPhotos || secPhotos.length < sec.products.length) continue; // photos not ready yet: keep this section as it is
+
+    let cat = await Category.findOne({ slug: slugify(sec.name) });
     if (!cat) cat = await Category.create({ name: sec.name, tagline: sec.tagline, image: secPhotos[0].thumb, order: ci, isDemo: true });
-    else if (!cat.image) { cat.image = secPhotos[0].thumb; await cat.save(); }
+    else if (cat.isDemo) { cat.image = secPhotos[0].thumb; cat.tagline = sec.tagline; cat.order = ci; await cat.save(); }
+
+    // replace only this section's demo products
+    const names = sec.products.map((p) => p.name);
+    await Product.deleteMany({ isDemo: true, $or: [{ category: cat._id }, { name: { $in: names } }] });
 
     const docs = [];
     for (const [pi, p] of sec.products.entries()) {
@@ -52,17 +56,23 @@ async function seed() {
       });
     }
     if (docs.length) await Product.insertMany(docs, { ordered: true });
-    count += docs.length;
-    process.stdout.write(`\r${ci + 1}/${catalog.length} sections, ${count} products`);
+    updated++; products += docs.length;
+    process.stdout.write(`\rUpdated ${updated} sections, ${products} products`);
   }
   process.stdout.write('\n');
 
-  await Banner.insertMany([
-    { eyebrow: 'New collection', title: 'Elegant ethnic wear', subtitle: 'Sarees, suits and lehengas for every occasion', image: photos.banners[0] || '', link: '/shop/sarees', order: 0, isDemo: true },
-    { eyebrow: 'Festive edit', title: 'Shararas, anarkalis and more', subtitle: 'Ready to wear, ready to celebrate', image: photos.banners[1] || '', link: '/shop/sharara-sets', order: 1, isDemo: true },
-    { eyebrow: 'Accessories', title: 'Bags, shoes and jewellery', subtitle: 'Finish every look', image: photos.banners[2] || '', link: '/shop/handbags', buttonText: 'Shop accessories', order: 2, isDemo: true },
-  ]);
-  console.log(`Added ${count} demo products in ${catalog.length} sections and 3 banners${skipped ? ` (skipped ${skipped} names you already have)` : ''}`);
+  if (photos.banners.length >= 3) {
+    await Banner.deleteMany({ isDemo: true });
+    await Banner.insertMany([
+      { eyebrow: 'New collection', title: 'Elegant ethnic wear', subtitle: 'Sarees, suits and lehengas for every occasion', image: photos.banners[0], link: '/shop/sarees', order: 0, isDemo: true },
+      { eyebrow: 'Festive edit', title: 'Shararas, anarkalis and more', subtitle: 'Ready to wear, ready to celebrate', image: photos.banners[1], link: '/shop/sharara-sets', order: 1, isDemo: true },
+      { eyebrow: 'Accessories', title: 'Bags, shoes and jewellery', subtitle: 'Finish every look', image: photos.banners[2], link: '/shop/handbags', buttonText: 'Shop accessories', order: 2, isDemo: true },
+    ]);
+    console.log('Banners updated');
+  }
+
+  console.log(`Done: ${updated}/${catalog.length} sections updated with ${products} products${skipped ? ` (skipped ${skipped} names you already have)` : ''}.`);
+  if (photos.incomplete) console.log(photos.incomplete);
 }
 
 (async () => {

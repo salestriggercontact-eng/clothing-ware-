@@ -191,11 +191,11 @@ async function getPhotos(sectionNames, need = 40) {
       save();
     }
   } catch (e) {
-    if (e instanceof RateLimit) {
-      const left = sectionNames.filter((n) => !(cache.sections[n] || []).length);
-      throw new Error(`${prov.credit} hourly limit reached. Progress saved (${sectionNames.length - left.length}/${sectionNames.length} sections ready). Run "npm run seed-demo" again after 1 hour.`);
-    }
-    throw e;
+    if (!(e instanceof RateLimit)) throw e;
+    const ready = sectionNames.filter((n) => (cache.sections[n] || []).length >= need).length;
+    const res = done(cache);
+    res.incomplete = `${prov.credit} hourly limit reached. ${ready}/${sectionNames.length} sections have new photos and are updated now. Run "npm run seed-demo" again after 1 hour for the rest.`;
+    return res;
   }
   return done(cache);
 }
