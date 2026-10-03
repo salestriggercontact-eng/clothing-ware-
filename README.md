@@ -23,7 +23,9 @@ Log in with the admin email -> you land on /admin.
 ## Demo products (optional)
 ```
 cd backend
-npm run seed-demo     # 17 sections x 7 products = 119 products, 2 banners, free Unsplash photos
+npm run seed-demo     # 35 sections x 40 products = 1400 unique products, each with its own Pexels photo
+                      # needs UNSPLASH_ACCESS_KEY (or PEXELS_API_KEY) in backend/.env
+                      # free Unsplash key = 50 searches/hour; if it stops, run it again after 1 hour (progress is saved)
 npm run remove-demo   # deletes only the demo items (your own products stay)
 ```
 Demo products show a "Demo" tag in admin. Remove them before going live.

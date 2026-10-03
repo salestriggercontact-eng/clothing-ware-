@@ -447,3 +447,4 @@ h1, h2, h3 { margin: 0; font-weight: 500; }
   .footer-grid > div:first-child { grid-column: 1 / -1; }
   .doc .md { padding: 4px 16px 16px; }
 }
+.credit{margin-left:8px}.credit a{color:var(--rose)}

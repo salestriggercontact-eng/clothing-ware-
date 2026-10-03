@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
         )}
       </div>
-      <div className="footer-bottom">© {new Date().getFullYear()} {s.legalName || s.storeName}. All rights reserved.</div>
+      <div className="footer-bottom">© {new Date().getFullYear()} {s.legalName || s.storeName}. All rights reserved. <span className="credit">Demo photos from <a href="https://unsplash.com" target="_blank" rel="noreferrer">Unsplash</a> and <a href="https://www.pexels.com" target="_blank" rel="noreferrer">Pexels</a></span></div>
     </footer>
   );
 }
